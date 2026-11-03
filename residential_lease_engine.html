@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lease Generator – Persistent Solutions LLC</title>
+<style>
+  :root {
+    /* ── Luxury palette: ink, antique brass, warm cream ── */
+    --ink:        #14161b;
+    --ink-2:      #1e222b;
+    --primary:    #1c2028;
+    --accent:     #b08d57;   /* antique brass */
+    --accent-soft:#d9c39a;
+    --accent-deep:#8a6a3b;
+    --gold-line:  rgba(176,141,87,.40);
+
+    --paper:      #ffffff;
+    --cream:      #faf7f2;
+    --light:      #f6f2ea;
+    --canvas:     #e9e4da;
+    --border:     #e2dbcf;
+    --border-strong:#cfc5b4;
+
+    --text:       #23252a;
+    --muted:      #7c7568;
+    --success:    #4c7a5c;
+    --danger:     #9c4a3c;
+
+    --radius: 3px;
+    --serif: 'Cormorant Garamond', 'Didot', 'Playfair Display', Georgia, 'Times New Roman', serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--canvas);
+    color: var(--text);
+    line-height: 1.55;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── APP HEADER ── */
+  .app-header {
+    background: var(--ink);
+    color: #f4efe6;
+    padding: 16px 26px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    border-bottom: 1px solid var(--gold-line);
+    box-shadow: 0 1px 0 rgba(255,255,255,.05), 0 4px 18px rgba(0,0,0,.28);
+    position: relative;
+  }
+  .app-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+  .brand { display: flex; align-items: center; gap: 16px; }
+  .brand-mark {
+    width: 48px; height: 48px;
+    background: transparent;
+    border: 1px solid var(--accent);
+    border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--serif);
+    font-weight: 600; font-size: 1.15rem; letter-spacing: .12em;
+    color: var(--accent-soft);
+    box-shadow: inset 0 0 0 3px rgba(176,141,87,.12);
+  }
+  .brand h1 {
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    font-weight: 500;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: #f7f2e9;
+  }
+  .brand p {
+    font-size: .72rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--accent-soft);
+    opacity: .85;
+  }
+  .header-actions { display: flex; align-items: center; gap: 10px; }
+  .status {
+    font-size: .7rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    background: rgba(176,141,87,.12);
+    border: 1px solid var(--gold-line);
+    color: var(--accent-soft);
+    padding: 6px 14px;
+    border-radius: 20px;
+    transition: background .3s, color .3s, border-color .3s;
+  }
+  .status.saved { background: rgba(76,122,92,.22); border-color: rgba(76,122,92,.6); color: #cfe3d5; }
+  .status.error { background: rgba(156,74,60,.25); border-color: rgba(156,74,60,.65); color: #f0d3cc; }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    background: var(--cream);
+    border-bottom: 1px solid var(--border);
+    padding: 11px 26px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 1px 6px rgba(30,25,15,.06);
+  }
+  .toolbar button, .toolbar .file-btn {
+    font-family: inherit;
+    font-size: .74rem;
+    font-weight: 600;
+    padding: 9px 16px;
+    border: 1px solid var(--border-strong);
+    background: var(--paper);
+    color: var(--primary);
+    border-radius: var(--radius);
+    cursor: pointer;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    transition: all .18s ease;
+    white-space: nowrap;
+  }
+  .toolbar button:hover, .toolbar .file-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent-deep);
+    background: #fdfaf4;
+    box-shadow: 0 1px 6px rgba(176,141,87,.22);
+  }
+  .toolbar button.primary {
+    background: var(--primary);
+    color: var(--accent-soft);
+    border-color: var(--primary);
+  }
+  .toolbar button.primary:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #1a1408;
+    box-shadow: 0 2px 10px rgba(176,141,87,.4);
+  }
+  .toolbar button.danger:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+    background: #fdf6f4;
+    box-shadow: 0 1px 6px rgba(156,74,60,.18);
+  }
+  .toolbar .spacer { flex: 1; }
+  .file-btn input { display: none; }
+  .toolbar .divider {
+    width: 1px; height: 24px;
+    background: var(--border-strong);
+    margin: 0 6px;
+    opacity: .7;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 460px 1fr;
+    gap: 0;
+    height: calc(100vh - 124px);
+    overflow: hidden;
+  }
+  @media (max-width: 1100px) {
+    .main-grid { grid-template-columns: 1fr; height: auto; overflow: visible; }
+    .form-panel { max-height: none !important; }
+    .preview-panel { max-height: none !important; }
+  }
+
+  /* ── FORM PANEL ── */
+  .form-panel {
+    background: var(--cream);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 18px 20px 44px;
+    max-height: calc(100vh - 124px);
+  }
+  .form-panel::-webkit-scrollbar { width: 8px; }
+  .form-panel::-webkit-scrollbar-track { background: transparent; }
+  .form-panel::-webkit-scrollbar-thumb { background: #d6cdbd; border-radius: 4px; }
+  .form-panel::-webkit-scrollbar-thumb:hover { background: var(--accent-soft); }
+
+  details.form-section {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+    background: var(--paper);
+    box-shadow: 0 1px 2px rgba(30,25,15,.04);
+  }
+  details.form-section > summary {
+    cursor: pointer;
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: .74rem;
+    color: var(--primary);
+    background: var(--light);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+    border-left: 3px solid var(--border-strong);
+    transition: background .18s, border-color .18s;
+  }
+  details.form-section > summary:hover { background: #f1ece2; border-left-color: var(--accent-soft); }
+  details.form-section[open] > summary { border-left-color: var(--accent); background: #f3eee4; }
+  details.form-section > summary::-webkit-details-marker { display: none; }
+  details.form-section > summary::after {
+    content: '❯';
+    font-size: .7rem;
+    color: var(--accent);
+    transition: transform .22s ease;
+  }
+  details.form-section[open] > summary::after { transform: rotate(90deg); }
+  details.form-section > summary .badge {
+    font-size: .58rem;
+    background: transparent;
+    color: var(--accent-deep);
+    border: 1px solid var(--accent-soft);
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 8px;
+    font-weight: 600;
+    letter-spacing: .12em;
+  }
+  .form-section-body { padding: 16px; }
+
+  /* ── FORM FIELDS ── */
+  .row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; }
+  .field { flex: 1 1 180px; min-width: 140px; display: flex; flex-direction: column; }
+  .field.full { flex: 1 1 100%; }
+  .field.half { flex: 1 1 calc(50% - 6px); }
+  .field.third { flex: 1 1 calc(33.33% - 8px); }
+  .field label {
+    font-size: .64rem;
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+  }
+  .field label .req { color: var(--danger); margin-left: 2px; }
+  input[type="text"], input[type="date"], input[type="number"],
+  input[type="email"], input[type="tel"], select, textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    font-size: .9rem;
+    font-family: inherit;
+    background: #fdfbf7;
+    transition: border-color .18s, box-shadow .18s, background .18s;
+    color: var(--text);
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(176,141,87,.16);
+    background: #fff;
+  }
+  input.invalid, select.invalid, textarea.invalid {
+    border-color: var(--danger);
+    background: #fdf6f4;
+  }
+  input[readonly] {
+    background: #f1ece2 !important;
+    color: #5f574a;
+    border-color: var(--border);
+  }
+  textarea { resize: vertical; min-height: 60px; font-size: .88rem; }
+  select { cursor: pointer; }
+  .check-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: .86rem;
+  }
+  .check-row input[type="checkbox"] {
+    width: 16px; height: 16px;
+    accent-color: var(--accent-deep);
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+  .check-row label {
+    font-weight: 400;
+    text-transform: none;
+    font-size: .86rem;
+    letter-spacing: 0;
+    color: var(--text);
+    cursor: pointer;
+    margin-bottom: 0;
+    line-height: 1.45;
+  }
+  .hint {
+    font-size: .72rem;
+    color: var(--muted);
+    margin-top: 4px;
+    font-style: italic;
+  }
+  .section-divider {
+    margin: 16px 0;
+    border: none;
+    border-top: 1px solid var(--border);
+    position: relative;
+  }
+  .sub-heading {
+    font-family: var(--serif);
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--accent-deep);
+    text-transform: uppercase;
+    letter-spacing: .16em;
+    margin: 6px 0 9px;
+  }
+
+  /* ── PREVIEW PANEL ── */
+  .preview-panel {
+    overflow-y: auto;
+    max-height: calc(100vh - 124px);
+    background: var(--canvas);
+    padding: 22px 26px 48px;
+    background-image: radial-gradient(circle at 50% 0%, rgba(255,255,255,.55), transparent 65%);
+  }
+  .preview-panel::-webkit-scrollbar { width: 8px; }
+  .preview-panel::-webkit-scrollbar-track { background: transparent; }
+  .preview-panel::-webkit-scrollbar-thumb { background: #cec4b2; border-radius: 4px; }
+  .preview-panel::-webkit-scrollbar-thumb:hover { background: var(--accent-soft); }
+  .preview-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    font-size: .68rem;
+    color: var(--muted);
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+  }
+  .preview-content {
+    background: var(--paper);
+    max-width: 860px;
+    margin: 0 auto;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 34px rgba(40,32,18,.16), 0 2px 6px rgba(40,32,18,.08);
+    overflow: hidden;
+  }
+
+  /* ── LEASE DOCUMENT (preview + print) ── */
+  .lease-doc { font-size: .86rem; color: var(--text); line-height: 1.55; }
+  .lease-doc-header {
+    background: var(--ink);
+    color: #f6f1e8;
+    padding: 32px 34px 26px;
+    text-align: center;
+    border-bottom: 2px solid var(--accent);
+    position: relative;
+  }
+  .lease-doc-header::before {
+    content: '';
+    position: absolute;
+    top: 10px; left: 12%;
+    width: 76%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-line), transparent);
+  }
+  .lease-doc-header h1 {
+    font-family: var(--serif);
+    font-size: 1.65rem;
+    font-weight: 500;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    margin-bottom: 0;
+    color: #fbf7ef;
+  }
+  .lease-doc-header h1::after {
+    content: '';
+    display: block;
+    width: 62px;
+    height: 1px;
+    background: var(--accent);
+    margin: 14px auto 12px;
+  }
+  .lease-doc-header .sub {
+    font-size: .72rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--accent-soft);
+    opacity: .9;
+  }
+  .lease-doc-header .company {
+    font-family: var(--serif);
+    font-size: 1.02rem;
+    font-weight: 600;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    margin-top: 10px;
+    color: var(--accent);
+  }
+  .lease-doc-body { padding: 28px 36px 34px; }
+  .lease-doc section { margin-bottom: 24px; break-inside: avoid; }
+  .lease-doc .sec-title {
+    font-family: var(--serif);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary);
+    border-bottom: 1px solid var(--accent);
+    padding-bottom: 6px;
+    margin-bottom: 12px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+  .lease-doc p { margin-bottom: 7px; }
+  .lease-doc .kv { margin-bottom: 5px; }
+  .lease-doc .kv strong { color: var(--primary); font-weight: 700; }
+  .lease-doc .statute-note {
+    background: #faf6ee;
+    border-left: 2px solid var(--accent);
+    padding: 11px 15px;
+    border-radius: 0;
+    font-size: .78rem;
+    color: #3a352c;
+    margin: 10px 0 12px;
+    line-height: 1.55;
+  }
+  .lease-doc .statute-note strong { color: var(--accent-deep); }
+  .lease-doc .statute-note ul { margin: 5px 0 0 17px; font-size: .78rem; }
+  .lease-doc .statute-note li { margin-bottom: 3px; }
+  .lease-doc .lead-block {
+    border: 1px solid var(--accent);
+    background: #fffdf8;
+    border-radius: 2px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    break-inside: avoid;
+    box-shadow: inset 0 0 0 3px #fff;
+  }
+  .lease-doc .lead-block h3 {
+    font-family: var(--serif);
+    font-size: .95rem;
+    color: var(--accent-deep);
+    margin-bottom: 9px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .lease-doc .lead-block .warning-statement {
+    font-size: .8rem;
+    background: #fdf6e4;
+    border-left: 2px solid var(--accent);
+    padding: 10px 14px;
+    border-radius: 0;
+    margin-bottom: 13px;
+  }
+  .lease-doc .lead-block .sub-head {
+    font-weight: 700;
+    font-size: .76rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin: 13px 0 6px;
+  }
+  .lease-doc .lead-block .body-text { font-size: .8rem; margin-bottom: 5px; }
+  .lease-doc .lead-block .check-line {
+    font-size: .8rem;
+    margin-bottom: 5px;
+    padding-left: 4px;
+  }
+  .lease-doc .lead-block .check-line .box {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border: 1px solid var(--accent-deep);
+    margin-right: 7px;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 10px;
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--accent-deep);
+  }
+  .lease-doc .lead-block .check-line .box.checked::after { content: '✓'; }
+  .lease-doc .lead-block .check-line .box.unchecked::after { content: ''; }
+  .lease-doc .sig-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-top: 12px;
+  }
+  .lease-doc .sig-block { flex: 1 1 240px; min-width: 200px; }
+  .lease-doc .sig-line {
+    border-bottom: 1px solid #4a4438;
+    padding-top: 32px;
+    margin-bottom: 5px;
+  }
+  .lease-doc .sig-label {
+    font-size: .62rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .14em;
+  }
+  .lease-doc .sig-info { font-size: .78rem; color: #4a4438; margin-top: 4px; min-height: 1em; }
+  .lease-doc .doc-footer {
+    margin-top: 26px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: .68rem;
+    color: var(--muted);
+    text-align: center;
+    letter-spacing: .03em;
+  }
+  .lease-doc .doc-footer p { margin-bottom: 4px; }
+
+  /* ── PRINT ── */
+  @media print {
+    @page { margin: 0.6in; size: letter; }
+    body { background: #fff; font-size: 11pt; }
+    .no-print { display: none !important; }
+    .app-header, .toolbar, .form-panel, .preview-toolbar { display: none !important; }
+    .main-grid { display: block; height: auto; overflow: visible; }
+    .preview-panel {
+      max-height: none; overflow: visible; padding: 0;
+      background: #fff; background-image: none;
+    }
+    .preview-content {
+      box-shadow: none;
+      border: none;
+      border-radius: 0;
+      max-width: 100%;
+      margin: 0;
+    }
+    .lease-doc { font-size: 10.5pt; }
+    .lease-doc-header {
+      background: #fff !important;
+      color: var(--primary) !important;
+      border-bottom: 2px solid var(--accent);
+      padding: 0 0 16px;
+    }
+    .lease-doc-header::before { display: none; }
+    .lease-doc-header h1 { color: var(--primary); }
+    .lease-doc-header .sub { color: var(--accent-deep); opacity: 1; }
+    .lease-doc-header .company { color: var(--accent-deep); }
+    .lease-doc-body { padding: 18px 8px 20px; }
+    .lease-doc .statute-note,
+    .lease-doc .lead-block,
+    .lease-doc .lead-block .warning-statement {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .lease-doc section, .lease-doc .lead-block, .lease-doc .sig-block { break-inside: avoid; }
+    .lease-doc .sec-title { break-after: avoid; }
+  }
+
+  /* ── MOBILE ── */
+  @media (max-width: 640px) {
+    .app-header { padding: 12px 16px; }
+    .brand h1 { font-size: 1.05rem; }
+    .toolbar { padding: 9px 12px; }
+    .toolbar button, .toolbar .file-btn { font-size: .68rem; padding: 8px 11px; }
+    .form-panel { padding: 14px 12px 32px; }
+    .preview-panel { padding: 14px 12px 32px; }
+    .field.half, .field.third { flex: 1 1 100%; }
+    .lease-doc-body { padding: 18px 18px 24px; }
+    .lease-doc-header { padding: 24px 18px 20px; }
+    .lease-doc-header h1 { font-size: 1.25rem; letter-spacing: .12em; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════ APP HEADER ══════════ -->
+<header class="app-header no-print">
+  <div class="brand">
+    <div class="brand-mark">PS</div>
+    <div>
+      <h1>Persistent Solutions LLC</h1>
+      <p>Missouri Residential Lease Generator</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <span id="status" class="status">Ready</span>
+  </div>
+</header>
+
+<!-- ══════════ TOOLBAR ══════════ -->
+<div class="toolbar no-print">
+  <button onclick="newLease()" class="danger">New Lease</button>
+  <button onclick="saveDraft()">Save Draft</button>
+  <button onclick="loadDraft()">Load Draft</button>
+  <div class="divider"></div>
+  <button onclick="loadCompanyDefaults()">Load Company Info</button>
+  <button onclick="saveCompanyDefaults()">Save Company Info</button>
+  <div class="divider"></div>
+  <button onclick="exportJSON()">Export JSON</button>
+  <label class="file-btn">Import JSON<input type="file" accept=".json" onchange="importJSON(event)"></label>
+  <div class="spacer"></div>
+  <button onclick="printLease()" class="primary">🖨 Print / Save PDF</button>
+</div>
+
+<!-- ══════════ MAIN GRID ══════════ -->
+<main class="main-grid">
+
+  <!-- ─────── FORM PANEL ─────── -->
+  <section class="form-panel no-print">
+
+    <!-- ══ 1. COMPANY DEFAULTS ══ -->
+    <details class="form-section" open>
+      <summary>🏢 Company Defaults <span class="badge">Saved Separately</span></summary>
+      <div class="form-section-body">
+        <p class="hint" style="margin-bottom:10px;">These values are saved separately and pre-fill every new lease.</p>
+        <div class="row">
+          <div class="field full">
+            <label>Company / Landlord Name</label>
+            <input type="text" id="f-companyName" value="Persistent Solutions LLC" readonly style="background:#e8eff5; font-weight:600;">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field full">
+            <label>Landlord Address</label>
+            <input type="text" id="f-companyAddress">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field half">
+            <label>Landlord Phone</label>
+            <input type="tel" id="f-companyPhone">
+          </div>
+          <div class="field half">
+            <label>Landlord Email</label>
+            <input type="email" id="f-companyEmail">
+          </div>
+        </div>
+        <hr class="section-divider">
+        <div class="sub-heading">Authorized Agent / Manager (Optional)</div>
+        <div class="row">
+          <div class="field full">
+            <label>Agent Name</label>
+            <input type="text" id="f-agentName">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field half">
+            <label>Agent Address</label>
+            <input type="text" id="f-agentAddress">
+          </div>
+          <div class="field half">
+            <label>Agent Phone</label>
+            <input type="tel" id="f-agentPhone">
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- ══ 2. TENANT(S) ══ -->
+    <details class="form-section" open>
+      <summary>👥 Tenant(s) <span class="badge">Required</span></summary>
+      <div class="form-section-body">
+        <div class="row">
+          <div class="field full">
+            <label>Tenant Full Legal Name(s) <span class="req">*</span></label>
+            <textarea id="f-tenantNames"></textarea>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- ══ 3. PREMISES ══ -->
+    <details class="form-section" open>
+      <summary>🏠 Rental Premises <span class="badge">Required</span></summary>
+      <div class="form-section-body">
+        <div class="row">
+          <div class="field full">
+            <label>Street Address <span class="req">*</span></label>
+            <input type="text" id="f-premisesAddress">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field third">
+            <label>City <span class="req">*</span></label>
+            <input type="text" id="f-premisesCity">
+          </div>
+          <div class="field third">
+            <label>State</label>
+            <input type="text" id="f-premisesState" value="MO" readonly style="background:#e8eff5;">
+          </div>
+          <div class="field third">
+            <label>ZIP <span class="req">*</span></label>
+            <input type="text" id="f-premisesZip">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field half">
+            <label>County</label>
+            <input type="text" id="f-premisesCounty" value="St. Louis County" readonly style="background:#e8eff5;">
+          </div>
+          <div class="field half">
+            <label>Property Type</label>
+            <select id="f-premisesType">
+              <option value="">— Select —</option>
+              <option>Single-Family Home</option>
+              <option>Duplex</option>
+              <option>Townhouse</option>
+              <option>Condominium</option>
+              <option>Apartment (4 units or fewer)</option>
+              <option>Apartment (5+ units)</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field half">
+            <label>Year Built</label>
+            <input type="number" id="f-yearBuilt" min="1800" max="2030">
+            <span class="hint">Determines lead-paint disclosure requirement.</span>
+          </div>
+          <div class="field half">
+            <label>Bedrooms / Bathrooms</label>
+            <input type="text" id="f-bedrooms">
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- ══ 4. LEASE TERM ══ -->
+    <details class="form-section" open>
+      <summary>📅 Lease Term <span class="badge">Required</span></summary>
+      <div class="form-section-body">
+        <div class="row">
+          <div class="field half">
+            <label>Start Date <span class="req">*</span></label>
+            <input type="date" id="f-leaseStart">
+          </div>
+          <div class="field half">
+            <label>End Date <span class="req">*</span></label>
+            <input type="date" id="f-leaseEnd">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field full">
+            <label>Lease Type <span class="req">*</span></label>
+            <select id="f-leaseType">
+              <option value="">— Select —</option>
+              <option>Fixed Term</option>
+              <option>Month-to-Month</option>
+              <option>Other (specify in Additional Terms)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- ══ 5. RENT ══ -->
+    <details class="form-section" open>
+      <summary>💰 Rent <span class="badge">Required</span></summary>
+      <div class="form-section-body">
+        <div class="row">
+          <div class="field third">
+            <label>Monthly Rent ($) <span class="req">*</span></label>
+            <input type="number" id="f-rentAmount" step="0.01" min="0">
+          </div>
+          <div class="field third">
+            <label>Due Day of Month</label>
+            <input type="number" id="f-rentDueDay" min="1" max="31">
+          </div>
+          <div class="field third">
+            <label>Grace Period (days)</label>
+            <input type="number" id="f-gracePeriod" min="0" max="30">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field half">
+            <label>Late Fee</label>
+            <input type="text" id="f-lateFee">
+          </div>
+          <div class="field half">
+            <label>Accepted Payment Method(s)</label>
+            <input type="text" id="f-paymentMethod">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field full">
+            <label>Notice Period for Rent Increase (if month-to-month)</label>
+            <input type="text" id="f-rentIncreaseNotice">
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- ══ 6. SECURITY DEPOSIT ══ -->
+    <details class="form-section" open>
+      <summary>🔒 Security Deposit <span class="badge">Required</span></summary>
+      <div class="form-section-body">
+        <div class="row">
+          <div class="field half">
+            <label>Deposit Amount ($) <span class="req">*</span></label>
+            <input type="number" id="f-depositAmount" step="0.01" min="0">
+          </div>
+          <div class="field half">
+            <label>Deposit Held By</label>
+            <input type="text" id="f-depositHolder" value="Persistent Solutions LLC">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field full">
+            <label>Bank / Depository Institution</label>
+            <input type="text" id="f-depositAccountLocation">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field full">
+            <label>Date Deposit Receipt Provided to Tenant</label>
+            <input type="date" id="f-depositReceiptDate">
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- ══ 7. UTILITIES ══ -->
+    <details class="form-section">
+      <summary>🔌 Utilities &amp; Services</summary>
+      <div class="form-section-body">
+        <div class="row">
+          <div class="field third">
+            <label>Electricity</label>
+            <select id="f-utilElectric"><option value="">—</option><option>Landlord</option><option>Tenant</option><option>Included in Rent</option></select>
+          </div>
+          <div class="field third">
+            <label>Gas</label>
+            <select id="f-utilGas"><option value="">—</option><option>Landlord</option><option>Tenant</option><option>Included in Rent</option></select>
+          </div>
+          <div class="field third">
+            <label>Water / Sewer</label>
+            <select id="f-utilWater"><option value="">—</option><option>Landlord</option><option>Tenant</option><option>Included in Rent</option></select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field third">
+            <label>Trash / Recycling</label>
+            <select id="f-utilTrash"><option value="">—</option><option>Landlord</option><option>Tenant</option><option>Included in Rent</option></select>
+          </div>
+          <div class="field third">
+            <label>Internet / Cable</label>
+            <select id="f-utilInternet"><option value="">—</option><option>Landlord</option><option>Tenant</option><option>Included in Rent</option></select>
+          </div>
+          <div class="field third">
+            <label>Lawn / Snow Removal</label>
+            <select id="f-utilLawn"><option value="">—</option><option>Landlord</option><option>Tenant</option><option>Included in Rent</option></select>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- ══ 8. MAINTENANCE ══ -->
+    <details class="form-section">
+      <summary>🔧 Maintenance &amp; Repairs</summary>
+      <div class="form-section-body">
+        <div class="row">
+          <div class="field full">
+            <label>Tenant's Maintenance Responsibilities</label>
+            <textarea id="f-maintTenant"></textarea>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field full">
+            <label>Landlord's Maintenance Responsibilities</label>
+            <textarea id="f-maintLandlord"></textarea>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field full">
+            <label>How Tenant Reports Repair Needs</label>
+            <input type="text" id="f-repairNotice">
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- ══ 9. ENTRY ══ -->
+    <details class="form-section">
+      <summary>🚪 Landlord Entry</summary>
+      <div class="form-section-body">
+        <div class="row">
+          <div class="field half">
+            <label>Notice Before Entry (hours)</label>
+            <input type="number" id="f-entryNotice" min="0" max="72">
+          </div>
+          <div class="field half">
+            <label>Permitted Entry Hours</label>
+            <input type="text" id="f-entryHours">
+          </div>
+        </div>
+        <div class="check-row">
+          <input type="checkbox" id="f-entryEmergency" checked>
+          <label for="f-entryEmergency">Landlord may enter without notice in case of emergency.</label>
+        </div>
+        <div class="check-row">
+          <input type="checkbox" id="f-entryShowings">
+          <label for="f-entryShowings">Landlord may enter to show the premises with reasonable notice.</label>
+        </div>
+      </div>
+    </details>
+
+    <!-- ══ 10. PETS ══ -->
+    <details class="form-section">
+      <summary>🐾 Pets</summary>
+      <div class="form-section-body">
+        <div class="row">
+          <div class="field full">
+            <label>Pet Policy</label>
+            <select id="f-petPolicy">
+              <option value="">— Select —</option>
+              <option>No pets allowed</option>
+              <option>Pets allowed with prior written approval</option>
+              <option>Cats only</option>
+              <option>Dogs only (weight/breed restrictions may apply)</option>
+              <option>Other (specify in Additional Terms)</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field half">
+            <label>Pet Deposit ($)</label>
+            <input type="number" id="f-petDeposit" step="0.01" min="0">
+          </div>
+          <div class="field half">
+            <label>Monthly Pet Rent ($)</label>
+            <input type="number" id="f-petRent" step="0.01" min="0">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field full">
+            <label>Approved Pet Description</label>
+            <textarea id="f-petDescription"></textarea>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- ══ 11. DEFAULT & TERMINATION ══ -->
+    <details class="form-section">
+      <summary>⚖️ Default &amp; Termination</summary>
+      <div class="form-section-body">
+        <div class="row">
+          <div class="field full">
+            <label>Cure Period for Non-Monetary Default (days)</label>
+            <input type="number" id="f-defaultCure" min="0" max="30">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field full">
+            <label>Notice to Terminate Month-to-Month Tenancy</label>
+            <input type="text" id="f-terminationNotice" value="One month written notice" readonly style="background:#e8eff5;">
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- ══ 12. LEAD-BASED PAINT ══ -->
+    <details class="form-section">
+      <summary>⚠️ Lead-Based Paint Disclosure</summary>
+      <div class="form-section-body">
+        <p class="hint" style="margin-bottom:10px;">Required for housing built before 1978. The full federal warning will appear in the lease.</p>
+
+        <div class="sub-heading">Lessor's Disclosure — (a) Presence</div>
+        <div class="check-row">
+          <input type="checkbox" id="f-leadPresent">
+          <label for="f-leadPresent">Known lead-based paint and/or hazards are present.</label>
+        </div>
+        <div class="row">
+          <div class="field full">
+            <label>Explanation (if known)</label>
+            <input type="text" id="f-leadPresentExplain">
+          </div>
+        </div>
+        <div class="check-row">
+          <input type="checkbox" id="f-leadNoKnowledge">
+          <label for="f-leadNoKnowledge">Lessor has no knowledge of lead-based paint and/or hazards.</label>
+        </div>
+
+        <hr class="section-divider">
+        <div class="sub-heading">Lessor's Disclosure — (b) Records</div>
+        <div class="check-row">
+          <input type="checkbox" id="f-leadRecordsProvided">
+          <label for="f-leadRecordsProvided">Lessor has provided all available records and reports.</label>
+        </div>
+        <div class="row">
+          <div class="field full">
+            <label>List of Documents Provided</label>
+            <input type="text" id="f-leadRecordsList">
+          </div>
+        </div>
+        <div class="check-row">
+          <input type="checkbox" id="f-leadNoRecords">
+          <label for="f-leadNoRecords">Lessor has no reports or records.</label>
+        </div>
+
+        <hr class="section-divider">
+        <div class="sub-heading">Lessee's Acknowledgment</div>
+        <div class="check-row">
+          <input type="checkbox" id="f-leadLesseeInfo">
+          <label for="f-leadLesseeInfo">Lessee has received copies of all information listed above.</label>
+        </div>
+        <div class="check-row">
+          <input type="checkbox" id="f-leadLesseePamphlet">
+          <label for="f-leadLesseePamphlet">Lessee has received the EPA pamphlet <em>Protect Your Family From Lead in Your Home</em>.</label>
+        </div>
+
+        <hr class="section-divider">
+        <div class="sub-heading">Agent's Acknowledgment</div>
+        <div class="check-row">
+          <input type="checkbox" id="f-leadAgentAck">
+          <label for="f-leadAgentAck">Agent has informed the lessor of obligations under 42 U.S.C. § 4852d.</label>
+        </div>
+
+        <hr class="section-divider">
+        <div class="sub-heading">Certification Signatures</div>
+        <div class="row">
+          <div class="field half">
+            <label>Lessor Printed Name</label>
+            <input type="text" id="f-leadLessorName">
+          </div>
+          <div class="field half">
+            <label>Lessor Date</label>
+            <input type="date" id="f-leadLessorDate">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field half">
+            <label>Lessee Printed Name</label>
+            <input type="text" id="f-leadLesseeName">
+          </div>
+          <div class="field half">
+            <label>Lessee Date</label>
+            <input type="date" id="f-leadLesseeDate">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field half">
+            <label>Agent Printed Name (or N/A)</label>
+            <input type="text" id="f-leadAgentName">
+          </div>
+          <div class="field half">
+            <label>Agent Date</label>
+            <input type="date" id="f-leadAgentDate">
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- ══ 13. OTHER DISCLOSURES ══ -->
+    <details class="form-section">
+      <summary>📋 Other Disclosures</summary>
+      <div class="form-section-body">
+        <div class="sub-heading">Methamphetamine Contamination</div>
+        <div class="check-row">
+          <input type="checkbox" id="f-methKnown">
+          <label for="f-methKnown">Landlord has knowledge that the premises were used to manufacture methamphetamine and has disclosed this.</label>
+        </div>
+        <div class="check-row">
+          <input type="checkbox" id="f-methNone">
+          <label for="f-methNone">Landlord has no knowledge of methamphetamine manufacturing on the premises.</label>
+        </div>
+
+        <hr class="section-divider">
+        <div class="sub-heading">St. Louis County Occupancy Permit</div>
+        <div class="check-row">
+          <input type="checkbox" id="f-occupancyPermit">
+          <label for="f-occupancyPermit">An occupancy permit has been obtained for this rental unit (if required).</label>
+        </div>
+      </div>
+    </details>
+
+    <!-- ══ 14. ADDITIONAL TERMS ══ -->
+    <details class="form-section">
+      <summary>📝 Additional Terms</summary>
+      <div class="form-section-body">
+        <div class="row">
+          <div class="field full">
+            <label>Additional Agreed-Upon Terms</label>
+            <textarea id="f-additionalTerms" rows="5"></textarea>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- ══ 15. SIGNATURES ══ -->
+    <details class="form-section">
+      <summary>✍️ Signatures</summary>
+      <div class="form-section-body">
+        <div class="sub-heading">Landlord / Agent</div>
+        <div class="row">
+          <div class="field half">
+            <label>Printed Name</label>
+            <input type="text" id="f-sigLandlordName">
+          </div>
+          <div class="field half">
+            <label>Date</label>
+            <input type="date" id="f-sigLandlordDate">
+          </div>
+        </div>
+        <hr class="section-divider">
+        <div class="sub-heading">Tenant 1</div>
+        <div class="row">
+          <div class="field half">
+            <label>Printed Name</label>
+            <input type="text" id="f-sigTenantName">
+          </div>
+          <div class="field half">
+            <label>Date</label>
+            <input type="date" id="f-sigTenantDate">
+          </div>
+        </div>
+        <hr class="section-divider">
+        <div class="sub-heading">Tenant 2 (Optional)</div>
+        <div class="row">
+          <div class="field half">
+            <label>Printed Name</label>
+            <input type="text" id="f-sigTenant2Name">
+          </div>
+          <div class="field half">
+            <label>Date</label>
+            <input type="date" id="f-sigTenant2Date">
+          </div>
+        </div>
+        <hr class="section-divider">
+        <div class="sub-heading">Tenant 3 (Optional)</div>
+        <div class="row">
+          <div class="field half">
+            <label>Printed Name</label>
+            <input type="text" id="f-sigTenant3Name">
+          </div>
+          <div class="field half">
+            <label>Date</label>
+            <input type="date" id="f-sigTenant3Date">
+          </div>
+        </div>
+      </div>
+    </details>
+
+  </section>
+
+  <!-- ─────── PREVIEW PANEL ─────── -->
+  <section class="preview-panel">
+    <div class="preview-toolbar no-print">
+      <span>📄 Live Lease Preview</span>
+      <span id="preview-meta"></span>
+    </div>
+    <div id="preview-content" class="preview-content print-area">
+      <!-- Rendered by JS -->
+    </div>
+  </section>
+
+</main>
+
+<!-- ══════════ JAVASCRIPT ══════════ -->
+<script>
+/* ─────────────────────────────────────────────
+   PERSISTENT SOLUTIONS LLC — LEASE GENERATOR
+   ───────────────────────────────────────────── */
+
+const STORAGE_KEYS = {
+  draft: 'psllc_lease_draft',
+  company: 'psllc_company_defaults',
+  history: 'psllc_lease_history'
+};
+
+/* ── All form field IDs in one list ── */
+const FIELD_IDS = [
+  'f-companyName','f-companyAddress','f-companyPhone','f-companyEmail',
+  'f-agentName','f-agentAddress','f-agentPhone',
+  'f-tenantNames',
+  'f-premisesAddress','f-premisesCity','f-premisesState','f-premisesZip',
+  'f-premisesCounty','f-premisesType','f-yearBuilt','f-bedrooms',
+  'f-leaseStart','f-leaseEnd','f-leaseType',
+  'f-rentAmount','f-rentDueDay','f-gracePeriod','f-lateFee','f-paymentMethod','f-rentIncreaseNotice',
+  'f-depositAmount','f-depositHolder','f-depositAccountLocation','f-depositReceiptDate',
+  'f-utilElectric','f-utilGas','f-utilWater','f-utilTrash','f-utilInternet','f-utilLawn',
+  'f-maintTenant','f-maintLandlord','f-repairNotice',
+  'f-entryNotice','f-entryHours','f-entryEmergency','f-entryShowings',
+  'f-petPolicy','f-petDeposit','f-petRent','f-petDescription',
+  'f-defaultCure','f-terminationNotice',
+  'f-leadPresent','f-leadPresentExplain','f-leadNoKnowledge',
+  'f-leadRecordsProvided','f-leadRecordsList','f-leadNoRecords',
+  'f-leadLesseeInfo','f-leadLesseePamphlet','f-leadAgentAck',
+  'f-leadLessorName','f-leadLessorDate','f-leadLesseeName','f-leadLesseeDate',
+  'f-leadAgentName','f-leadAgentDate',
+  'f-methKnown','f-methNone','f-occupancyPermit',
+  'f-additionalTerms',
+  'f-sigLandlordName','f-sigLandlordDate',
+  'f-sigTenantName','f-sigTenantDate',
+  'f-sigTenant2Name','f-sigTenant2Date',
+  'f-sigTenant3Name','f-sigTenant3Date'
+];
+
+const CHECKBOX_IDS = [
+  'f-entryEmergency','f-entryShowings',
+  'f-leadPresent','f-leadNoKnowledge','f-leadRecordsProvided','f-leadNoRecords',
+  'f-leadLesseeInfo','f-leadLesseePamphlet','f-leadAgentAck',
+  'f-methKnown','f-methNone','f-occupancyPermit'
+];
+
+const COMPANY_IDS = ['f-companyName','f-companyAddress','f-companyPhone','f-companyEmail',
+                     'f-agentName','f-agentAddress','f-agentPhone'];
+
+/* ── Helpers ── */
+function $(id) { return document.getElementById(id); }
+function esc(s) {
+  if (s === undefined || s === null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function nl2br(s) { return esc(s).replace(/\n/g, '<br>'); }
+function val(id) { const el = $(id); return el ? el.value.trim() : ''; }
+function chk(id) { const el = $(id); return el ? el.checked : false; }
+function fmtDate(s) {
+  if (!s) return '';
+  const d = new Date(s + 'T00:00:00');
+  if (isNaN(d)) return s;
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+function money(s) {
+  if (!s && s !== 0) return '';
+  const n = parseFloat(s);
+  if (isNaN(n)) return s;
+  return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+/* Returns the escaped value, or an empty string when blank — no placeholder text. */
+function blankOr(v) {
+  return v ? esc(v) : '';
+}
+function setStatus(msg, cls) {
+  const el = $('status');
+  el.textContent = msg;
+  el.className = 'status' + (cls ? ' ' + cls : '');
+}
+function debounce(fn, ms) {
+  let t;
+  return function(...a) { clearTimeout(t); t = setTimeout(() => fn.apply(this, a), ms); };
+}
+
+/* ─────────────────────────────────────────────
+   COLLECT FORM DATA
+   ───────────────────────────────────────────── */
+function collectFormData() {
+  const data = {};
+  FIELD_IDS.forEach(id => {
+    const el = $(id);
+    if (!el) return;
+    if (el.type === 'checkbox') {
+      data[id] = el.checked;
+    } else {
+      data[id] = el.value;
+    }
+  });
+  return data;
+}
+
+/* ─────────────────────────────────────────────
+   POPULATE FORM FROM DATA
+   ───────────────────────────────────────────── */
+function populateForm(data) {
+  FIELD_IDS.forEach(id => {
+    const el = $(id);
+    if (!el) return;
+    if (el.type === 'checkbox') {
+      el.checked = !!data[id];
+    } else {
+      el.value = data[id] !== undefined ? data[id] : '';
+    }
+  });
+  renderLease();
+}
+
+/* ─────────────────────────────────────────────
+   RENDER LEASE PREVIEW
+   ───────────────────────────────────────────── */
+function renderLease() {
+  const d = collectFormData();
+  const company = d['f-companyName'] || 'Persistent Solutions LLC';
+
+  /* ── Determine if lead block should be emphasized ── */
+  const yearBuilt = parseInt(d['f-yearBuilt']) || 0;
+  const isPre1978 = yearBuilt > 0 && yearBuilt < 1978;
+  const showLead = isPre1978 || d['f-leadPresent'] || d['f-leadNoKnowledge'] ||
+                   d['f-leadRecordsProvided'] || d['f-leadNoRecords'] ||
+                   d['f-leadLesseeInfo'] || d['f-leadLesseePamphlet'] || d['f-leadAgentAck'];
+
+  /* ── Build the lease HTML ── */
+  let html = '';
+
+  /* ── Header ── */
+  html += `
+    <div class="lease-doc">
+      <div class="lease-doc-header">
+        <h1>Residential Lease Agreement</h1>
+        <p class="sub">State of Missouri &nbsp;•&nbsp; ${esc(d['f-premisesCounty'] || 'St. Louis County')}</p>
+        <p class="company">${esc(company)}</p>
+      </div>
+      <div class="lease-doc-body">
+  `;
+
+  /* ── 1. PARTIES ── */
+  html += `<section>
+    <div class="sec-title">1. Parties</div>
+    <p class="kv"><strong>Landlord / Owner:</strong> ${esc(company)}</p>
+    ${d['f-companyAddress'] ? `<p class="kv"><strong>Landlord Address:</strong> ${esc(d['f-companyAddress'])}</p>` : ''}
+    ${d['f-companyPhone'] ? `<p class="kv"><strong>Landlord Phone:</strong> ${esc(d['f-companyPhone'])}</p>` : ''}
+    ${d['f-companyEmail'] ? `<p class="kv"><strong>Landlord Email:</strong> ${esc(d['f-companyEmail'])}</p>` : ''}
+    ${d['f-agentName'] ? `<p class="kv"><strong>Authorized Agent:</strong> ${esc(d['f-agentName'])}</p>` : ''}
+    ${d['f-agentAddress'] ? `<p class="kv"><strong>Agent Address:</strong> ${esc(d['f-agentAddress'])}</p>` : ''}
+    ${d['f-agentPhone'] ? `<p class="kv"><strong>Agent Phone:</strong> ${esc(d['f-agentPhone'])}</p>` : ''}
+    <p class="kv"><strong>Tenant(s):</strong> ${blankOr(d['f-tenantNames'])}</p>
+    <div class="statute-note">
+      <strong>Mo. Rev. Stat. § 441.005 / § 535.300</strong> — The landlord must disclose the name and address of the property owner or the owner's authorized agent. The tenant is entitled to this information.
+    </div>
+  </section>`;
+
+  /* ── 2. PREMISES ── */
+  html += `<section>
+    <div class="sec-title">2. Rental Premises</div>
+    <p class="kv"><strong>Street Address:</strong> ${blankOr(d['f-premisesAddress'])}</p>
+    <p class="kv"><strong>City / State / ZIP:</strong> ${blankOr(d['f-premisesCity'])}${d['f-premisesCity'] ? ',' : ''} ${esc(d['f-premisesState'] || 'MO')} ${blankOr(d['f-premisesZip'])}</p>
+    <p class="kv"><strong>County:</strong> ${esc(d['f-premisesCounty'] || 'St. Louis County')}</p>
+    ${d['f-premisesType'] ? `<p class="kv"><strong>Property Type:</strong> ${esc(d['f-premisesType'])}</p>` : ''}
+    ${d['f-yearBuilt'] ? `<p class="kv"><strong>Year Built:</strong> ${esc(d['f-yearBuilt'])}</p>` : ''}
+    ${d['f-bedrooms'] ? `<p class="kv"><strong>Bedrooms / Bathrooms:</strong> ${esc(d['f-bedrooms'])}</p>` : ''}
+    <div class="statute-note">
+      <strong>St. Louis County Ordinance</strong> — An occupancy permit may be required before a new tenant moves into a rental unit in unincorporated St. Louis County or in municipalities contracting with the County for residential occupancy services. The landlord is responsible for obtaining the permit and having it available for inspection.
+    </div>
+  </section>`;
+
+  /* ── 3. TERM ── */
+  const leaseType = d['f-leaseType'] || '';
+  const isMonthToMonth = leaseType === 'Month-to-Month';
+  html += `<section>
+    <div class="sec-title">3. Lease Term</div>
+    <p class="kv"><strong>Lease Start Date:</strong> ${blankOr(fmtDate(d['f-leaseStart']))}</p>
+    ${!isMonthToMonth ? `<p class="kv"><strong>Lease End Date:</strong> ${blankOr(fmtDate(d['f-leaseEnd']))}</p>` : ''}
+    <p class="kv"><strong>Lease Type:</strong> ${blankOr(leaseType)}</p>
+    <div class="statute-note">
+      <strong>Mo. Rev. Stat. § 441.060</strong> — A month-to-month tenancy may be terminated by either party giving one month's written notice to the other party, stating that the tenancy shall terminate upon a periodic rent-paying date not less than one month after receipt of the notice. A tenancy at will or by sufferance may be terminated by one month's written notice requiring the tenant to vacate.
+    </div>
+  </section>`;
+
+  /* ── 4. RENT ── */
+  html += `<section>
+    <div class="sec-title">4. Rent</div>
+    <p class="kv"><strong>Monthly Rent:</strong> ${blankOr(money(d['f-rentAmount']))}</p>
+    ${d['f-rentDueDay'] ? `<p class="kv"><strong>Due Day of Month:</strong> ${esc(d['f-rentDueDay'])}</p>` : ''}
+    ${d['f-gracePeriod'] ? `<p class="kv"><strong>Grace Period:</strong> ${esc(d['f-gracePeriod'])} day(s)</p>` : ''}
+    ${d['f-lateFee'] ? `<p class="kv"><strong>Late Fee:</strong> ${esc(d['f-lateFee'])}</p>` : ''}
+    ${d['f-paymentMethod'] ? `<p class="kv"><strong>Accepted Payment Method(s):</strong> ${esc(d['f-paymentMethod'])}</p>` : ''}
+    ${d['f-rentIncreaseNotice'] ? `<p class="kv"><strong>Rent Increase Notice:</strong> ${esc(d['f-rentIncreaseNotice'])}</p>` : ''}
+    <div class="statute-note">
+      <strong>Mo. Rev. Stat. § 441.043</strong> — No county or city may enact or enforce any ordinance that regulates the amount of rent charged for privately-owned residential property. Rent control is prohibited in Missouri (except for certain federal housing programs).
+    </div>
+  </section>`;
+
+  /* ── 5. SECURITY DEPOSIT ── */
+  html += `<section>
+    <div class="sec-title">5. Security Deposit</div>
+    <p class="kv"><strong>Security Deposit Amount:</strong> ${blankOr(money(d['f-depositAmount']))}</p>
+    ${d['f-depositHolder'] ? `<p class="kv"><strong>Deposit Held By:</strong> ${esc(d['f-depositHolder'])}</p>` : ''}
+    ${d['f-depositAccountLocation'] ? `<p class="kv"><strong>Depository Institution:</strong> ${esc(d['f-depositAccountLocation'])}</p>` : ''}
+    ${d['f-depositReceiptDate'] ? `<p class="kv"><strong>Deposit Receipt Date:</strong> ${fmtDate(d['f-depositReceiptDate'])}</p>` : ''}
+    <div class="statute-note">
+      <strong>Mo. Rev. Stat. § 535.300</strong> —
+      <ul>
+        <li>The landlord may not demand or receive a security deposit in excess of <strong>two months' rent</strong>.</li>
+        <li>All security deposits must be held in a bank, credit union, or federally insured depository institution. Interest earned is the property of the landlord.</li>
+        <li>Within <strong>30 days</strong> after termination of the tenancy, the landlord must either (a) return the full deposit, or (b) furnish a written itemized list of damages withheld, along with the balance of the deposit.</li>
+        <li>The landlord may withhold only amounts reasonably necessary to remedy tenant default in rent, restore the dwelling to its condition at the commencement of the tenancy (ordinary wear and tear excepted), or compensate for actual damages.</li>
+      </ul>
+    </div>
+  </section>`;
+
+  /* ── 6. UTILITIES ── */
+  const utils = [
+    ['Electricity', d['f-utilElectric']],
+    ['Gas', d['f-utilGas']],
+    ['Water / Sewer', d['f-utilWater']],
+    ['Trash / Recycling', d['f-utilTrash']],
+    ['Internet / Cable', d['f-utilInternet']],
+    ['Lawn / Snow Removal', d['f-utilLawn']]
+  ].filter(u => u[1]);
+  if (utils.length) {
+    html += `<section>
+      <div class="sec-title">6. Utilities &amp; Services</div>`;
+    utils.forEach(u => {
+      html += `<p class="kv"><strong>${esc(u[0])}:</strong> ${esc(u[1])}</p>`;
+    });
+    html += `</section>`;
+  }
+
+  /* ── 7. MAINTENANCE ── */
+  html += `<section>
+    <div class="sec-title">7. Maintenance, Repairs &amp; Habitability</div>
+    ${d['f-maintTenant'] ? `<p class="kv"><strong>Tenant's Responsibilities:</strong><br>${nl2br(d['f-maintTenant'])}</p>` : ''}
+    ${d['f-maintLandlord'] ? `<p class="kv"><strong>Landlord's Responsibilities:</strong><br>${nl2br(d['f-maintLandlord'])}</p>` : ''}
+    ${d['f-repairNotice'] ? `<p class="kv"><strong>Reporting Repairs:</strong> ${esc(d['f-repairNotice'])}</p>` : ''}
+    <div class="statute-note">
+      <strong>Mo. Rev. Stat. § 441.234 (Repair-and-Deduct)</strong> — A tenant who has lawfully resided on the premises for six consecutive months, has paid all rent and charges due, and has not received uncured written notice of lease violations may notify the landlord of a condition affecting habitability, sanitation, or security that violates a local housing or building code. If the landlord fails to correct the condition within 14 days after written notice (or promptly in an emergency), the tenant may have the work done and deduct the actual and reasonable cost from rent, subject to statutory limits (generally the lesser of $300 or one-half month's rent, not to exceed one month's rent, and not more than one month's rent in the aggregate per 12-month period). <strong>No lease may waive this right.</strong>
+    </div>
+    <div class="statute-note">
+      <strong>Mo. Rev. Stat. § 441.233 / § 534</strong> — A landlord may not remove doors, locks, or otherwise exclude a tenant without a court order. Such self-help eviction constitutes forcible entry and detainer and may expose the landlord to liability.
+    </div>
+  </section>`;
+
+  /* ── 8. ENTRY ── */
+  html += `<section>
+    <div class="sec-title">8. Landlord's Right of Entry</div>
+    ${d['f-entryNotice'] ? `<p class="kv"><strong>Notice Required Before Entry:</strong> ${esc(d['f-entryNotice'])} hour(s)</p>` : ''}
+    ${d['f-entryHours'] ? `<p class="kv"><strong>Permitted Entry Hours:</strong> ${esc(d['f-entryHours'])}</p>` : ''}
+    ${d['f-entryEmergency'] ? `<p class="kv">☑ Landlord may enter without notice in case of emergency.</p>` : `<p class="kv">☐ Landlord may not enter without notice except in emergency.</p>`}
+    ${d['f-entryShowings'] ? `<p class="kv">☑ Landlord may enter to show the premises with reasonable notice.</p>` : ''}
+  </section>`;
+
+  /* ── 9. PETS ── */
+  html += `<section>
+    <div class="sec-title">9. Pets</div>
+    <p class="kv"><strong>Pet Policy:</strong> ${blankOr(d['f-petPolicy'])}</p>
+    ${d['f-petDeposit'] ? `<p class="kv"><strong>Pet Deposit:</strong> ${money(d['f-petDeposit'])}</p>` : ''}
+    ${d['f-petRent'] ? `<p class="kv"><strong>Monthly Pet Rent:</strong> ${money(d['f-petRent'])}</p>` : ''}
+    ${d['f-petDescription'] ? `<p class="kv"><strong>Approved Pet(s):</strong><br>${nl2br(d['f-petDescription'])}</p>` : ''}
+  </section>`;
+
+  /* ── 10. DEFAULT & TERMINATION ── */
+  html += `<section>
+    <div class="sec-title">10. Default, Remedies &amp; Termination</div>
+    ${d['f-defaultCure'] ? `<p class="kv"><strong>Cure Period for Non-Monetary Default:</strong> ${esc(d['f-defaultCure'])} day(s)</p>` : ''}
+    <p class="kv"><strong>Notice to Terminate Month-to-Month Tenancy:</strong> ${esc(d['f-terminationNotice'] || 'One month written notice')}</p>
+    <div class="statute-note">
+      <strong>Mo. Rev. Stat. § 535.010 et seq.</strong> — If rent is not paid as agreed, the landlord may recover possession through the statutory rent-and-possession procedure. Eviction must be pursued through the courts; self-help eviction is prohibited.
+    </div>
+    <div class="statute-note">
+      <strong>Mo. Rev. Stat. § 441.060</strong> — Month-to-month tenancies may be terminated by either party giving one month's written notice to the other party, terminating on a periodic rent-paying date not less than one month after receipt of the notice.
+    </div>
+  </section>`;
+
+  /* ── 11. DISCLOSURES ── */
+  html += `<section>
+    <div class="sec-title">11. Required Disclosures</div>`;
+
+  /* Lead-based paint block */
+  if (showLead) {
+    const box = (checked) => `<span class="box ${checked ? 'checked' : 'unchecked'}"></span>`;
+    html += `
+    <div class="lead-block">
+      <h3>Lead-Based Paint Disclosure (Pre-1978 Housing)</h3>
+      <p class="warning-statement">
+        <strong>Lead Warning Statement</strong><br>
+        Housing built before 1978 may contain lead-based paint. Lead from paint, paint chips, and dust can pose health hazards if not managed properly. Lead exposure is especially harmful to young children and pregnant women. Before renting pre-1978 housing, lessors must disclose the presence of known lead-based paint and/or lead-based paint hazards in the dwelling. Lessees must also receive a federally approved pamphlet on lead poisoning prevention.
+      </p>
+      <p class="sub-head">Lessor's Disclosure</p>
+      <p class="body-text">(a) Presence of lead-based paint and/or lead-based paint hazards (check one):</p>
+      <p class="check-line">${box(d['f-leadPresent'])} <strong>Known</strong> lead-based paint and/or lead-based paint hazards are present in the housing${d['f-leadPresentExplain'] ? ': ' + esc(d['f-leadPresentExplain']) : ''}.</p>
+      <p class="check-line">${box(d['f-leadNoKnowledge'])} Lessor has <strong>no knowledge</strong> of lead-based paint and/or lead-based paint hazards in the housing.</p>
+      <p class="body-text" style="margin-top:9px;">(b) Records and reports available to the lessor (check one):</p>
+      <p class="check-line">${box(d['f-leadRecordsProvided'])} Lessor <strong>has provided</strong> the lessee with all available records and reports pertaining to lead-based paint and/or lead-based paint hazards in the housing${d['f-leadRecordsList'] ? ': ' + esc(d['f-leadRecordsList']) : ''}.</p>
+      <p class="check-line">${box(d['f-leadNoRecords'])} Lessor has <strong>no reports or records</strong> pertaining to lead-based paint and/or lead-based paint hazards in the housing.</p>
+      <p class="sub-head">Lessee's Acknowledgment</p>
+      <p class="check-line">${box(d['f-leadLesseeInfo'])} Lessee has received copies of all information listed above.</p>
+      <p class="check-line">${box(d['f-leadLesseePamphlet'])} Lessee has received the pamphlet <em>Protect Your Family From Lead in Your Home</em>.</p>
+      <p class="sub-head">Agent's Acknowledgment</p>
+      <p class="check-line">${box(d['f-leadAgentAck'])} Agent has informed the lessor of the lessor's obligations under 42 U.S.C. § 4852d and is aware of his/her responsibility to ensure compliance.</p>
+      <p class="sub-head">Certification of Accuracy</p>
+      <p class="body-text">The following parties have reviewed the information above and certify, to the best of their knowledge, that the information they have provided is true and accurate.</p>
+      <div class="sig-grid">
+        <div class="sig-block">
+          <div class="sig-line"></div>
+          <div class="sig-label">Lessor Signature</div>
+          <div class="sig-info">${blankOr(d['f-leadLessorName'])}${d['f-leadLessorName'] && d['f-leadLessorDate'] ? ' • ' : ''}${d['f-leadLessorDate'] ? fmtDate(d['f-leadLessorDate']) : ''}</div>
+        </div>
+        <div class="sig-block">
+          <div class="sig-line"></div>
+          <div class="sig-label">Lessee Signature</div>
+          <div class="sig-info">${blankOr(d['f-leadLesseeName'])}${d['f-leadLesseeName'] && d['f-leadLesseeDate'] ? ' • ' : ''}${d['f-leadLesseeDate'] ? fmtDate(d['f-leadLesseeDate']) : ''}</div>
+        </div>
+        <div class="sig-block">
+          <div class="sig-line"></div>
+          <div class="sig-label">Agent Signature</div>
+          <div class="sig-info">${blankOr(d['f-leadAgentName'])}${d['f-leadAgentName'] && d['f-leadAgentDate'] ? ' • ' : ''}${d['f-leadAgentDate'] ? fmtDate(d['f-leadAgentDate']) : ''}</div>
+        </div>
+      </div>
+      <p class="body-text" style="margin-top:10px; font-size:.72rem; color:#8a7a55;">
+        <em>Note:</em> This disclosure is required for housing constructed before 1978 under the Residential Lead-Based Paint Hazard Reduction Act of 1992 (42 U.S.C. § 4852d) and its implementing regulations at 40 C.F.R. Part 745, Subpart F. If the property was built in 1978 or later, this section is not required but may remain in the lease for reference.
+      </p>
+    </div>`;
+  } else {
+    html += `<div class="statute-note">Lead-based paint disclosure is not included because the property was built in 1978 or later (or the year built was not provided). If the property was built before 1978, edit the Year Built field and complete the Lead-Based Paint section.</div>`;
+  }
+
+  /* Meth */
+  html += `<p style="font-weight:700; font-size:.85rem; margin:10px 0 5px;">Methamphetamine Contamination Disclosure</p>`;
+  html += `<p class="kv">${d['f-methKnown'] ? '☑' : '☐'} Landlord has knowledge that the premises were used to manufacture methamphetamine and has disclosed this to the tenant.</p>`;
+  html += `<p class="kv">${d['f-methNone'] ? '☑' : '☐'} Landlord has no knowledge of methamphetamine manufacturing on the premises.</p>`;
+
+  /* Occupancy */
+  html += `<p style="font-weight:700; font-size:.85rem; margin:12px 0 5px;">St. Louis County Occupancy Permit</p>`;
+  html += `<p class="kv">${d['f-occupancyPermit'] ? '☑' : '☐'} An occupancy permit has been obtained for this rental unit (if required by St. Louis County ordinance or the applicable municipality).</p>`;
+
+  html += `</section>`;
+
+  /* ── 12. ADDITIONAL TERMS ── */
+  if (d['f-additionalTerms']) {
+    html += `<section>
+      <div class="sec-title">12. Additional Terms &amp; Conditions</div>
+      <p>${nl2br(d['f-additionalTerms'])}</p>
+    </section>`;
+  }
+
+  /* ── 13. ENTIRE AGREEMENT ── */
+  html += `<section>
+    <div class="sec-title">13. Entire Agreement</div>
+    <p>This Lease Agreement constitutes the entire agreement between the parties and supersedes all prior negotiations, representations, and understandings, whether written or oral. No modification of this Agreement shall be binding unless in writing and signed by both parties. If any provision of this Agreement is held invalid or unenforceable, the remaining provisions shall continue in full force and effect. This Agreement shall be governed by the laws of the State of Missouri.</p>
+  </section>`;
+
+  /* ── 14. SIGNATURES ── */
+  html += `<section>
+    <div class="sec-title">14. Signatures</div>
+    <p>By signing below, the parties acknowledge that they have read, understand, and agree to be bound by the terms of this Lease Agreement.</p>
+    <div class="sig-grid">
+      <div class="sig-block">
+        <div class="sig-line"></div>
+        <div class="sig-label">Landlord / Agent Signature</div>
+        <div class="sig-info">${blankOr(d['f-sigLandlordName'])}${d['f-sigLandlordName'] && d['f-sigLandlordDate'] ? ' • ' : ''}${d['f-sigLandlordDate'] ? fmtDate(d['f-sigLandlordDate']) : ''}</div>
+      </div>
+      <div class="sig-block">
+        <div class="sig-line"></div>
+        <div class="sig-label">Tenant Signature</div>
+        <div class="sig-info">${blankOr(d['f-sigTenantName'])}${d['f-sigTenantName'] && d['f-sigTenantDate'] ? ' • ' : ''}${d['f-sigTenantDate'] ? fmtDate(d['f-sigTenantDate']) : ''}</div>
+      </div>
+    </div>
+    ${(d['f-sigTenant2Name'] || d['f-sigTenant3Name']) ? `
+    <div class="sig-grid" style="margin-top:16px;">
+      ${d['f-sigTenant2Name'] ? `
+      <div class="sig-block">
+        <div class="sig-line"></div>
+        <div class="sig-label">Tenant Signature (Additional)</div>
+        <div class="sig-info">${esc(d['f-sigTenant2Name'])}${d['f-sigTenant2Date'] ? ' • ' + fmtDate(d['f-sigTenant2Date']) : ''}</div>
+      </div>` : ''}
+      ${d['f-sigTenant3Name'] ? `
+      <div class="sig-block">
+        <div class="sig-line"></div>
+        <div class="sig-label">Tenant Signature (Additional)</div>
+        <div class="sig-info">${esc(d['f-sigTenant3Name'])}${d['f-sigTenant3Date'] ? ' • ' + fmtDate(d['f-sigTenant3Date']) : ''}</div>
+      </div>` : ''}
+    </div>` : ''}
+  </section>`;
+
+  /* ── Footer ── */
+  html += `<div class="doc-footer">
+    <p><strong>${esc(company)}</strong> — Residential Lease Agreement</p>
+    <p>Statutory references: Mo. Rev. Stat. Chapters 441 &amp; 535. Federal lead disclosure: 42 U.S.C. § 4852d; 40 C.F.R. Part 745, Subpart F.</p>
+    <p>This document is a template and does not constitute legal advice. Consult a Missouri-licensed attorney to ensure compliance with current law.</p>
+  </div>`;
+
+  html += `</div></div>`; /* close lease-doc-body and lease-doc */
+
+  $('preview-content').innerHTML = html;
+
+  /* Update meta */
+  const tenantCount = d['f-tenantNames'] ? d['f-tenantNames'].split(',').filter(s => s.trim()).length : 0;
+  const metaParts = [];
+  if (tenantCount) metaParts.push(tenantCount + ' tenant(s)');
+  if (d['f-premisesCity']) metaParts.push(d['f-premisesCity']);
+  if (d['f-rentAmount']) metaParts.push(money(d['f-rentAmount']) + '/mo');
+  $('preview-meta').textContent = metaParts.join(' • ');
+}
+
+/* ─────────────────────────────────────────────
+   VALIDATION
+   ───────────────────────────────────────────── */
+function validate() {
+  const required = [
+    ['f-tenantNames', 'Tenant name(s)'],
+    ['f-premisesAddress', 'Street address'],
+    ['f-premisesCity', 'City'],
+    ['f-premisesZip', 'ZIP code'],
+    ['f-leaseStart', 'Lease start date'],
+    ['f-rentAmount', 'Monthly rent'],
+    ['f-depositAmount', 'Security deposit']
+  ];
+  const missing = [];
+  required.forEach(([id, label]) => {
+    const el = $(id);
+    if (!el) return;
+    if (!el.value.trim()) {
+      missing.push(label);
+      el.classList.add('invalid');
+    } else {
+      el.classList.remove('invalid');
+    }
+  });
+  /* Lease type-specific */
+  if (val('f-leaseType') === 'Fixed Term' && !val('f-leaseEnd')) {
+    missing.push('Lease end date (required for fixed term)');
+    $('f-leaseEnd').classList.add('invalid');
+  } else {
+    $('f-leaseEnd').classList.remove('invalid');
+  }
+  return missing;
+}
+
+/* ─────────────────────────────────────────────
+   ACTIONS
+   ───────────────────────────────────────────── */
+function newLease() {
+  if (!confirm('Start a new lease? Any unsaved changes will be lost.')) return;
+  /* Keep company defaults, clear lease fields */
+  const keep = {};
+  COMPANY_IDS.forEach(id => { keep[id] = val(id); });
+  FIELD_IDS.forEach(id => {
+    const el = $(id);
+    if (!el) return;
+    if (el.type === 'checkbox') {
+      el.checked = (id === 'f-entryEmergency');
+    } else {
+      el.value = '';
+    }
+  });
+  /* Restore company defaults */
+  COMPANY_IDS.forEach(id => {
+    if (keep[id] !== undefined) {
+      const el = $(id);
+      if (el) el.value = keep[id];
+    }
+  });
+  $('f-companyName').value = 'Persistent Solutions LLC';
+  $('f-premisesState').value = 'MO';
+  $('f-premisesCounty').value = 'St. Louis County';
+  $('f-depositHolder').value = 'Persistent Solutions LLC';
+  $('f-terminationNotice').value = 'One month written notice';
+  renderLease();
+  setStatus('New lease started', 'saved');
+  setTimeout(() => setStatus('Ready'), 2000);
+}
+
+function saveDraft() {
+  const data = collectFormData();
+  try {
+    localStorage.setItem(STORAGE_KEYS.draft, JSON.stringify(data));
+    setStatus('Draft saved ✓', 'saved');
+    setTimeout(() => setStatus('Ready'), 2500);
+  } catch (e) {
+    setStatus('Save failed: ' + e.message, 'error');
+  }
+}
+
+function loadDraft() {
+  const raw = localStorage.getItem(STORAGE_KEYS.draft);
+  if (!raw) {
+    setStatus('No saved draft found', 'error');
+    setTimeout(() => setStatus('Ready'), 2500);
+    return;
+  }
+  try {
+    const data = JSON.parse(raw);
+    populateForm(data);
+    setStatus('Draft loaded ✓', 'saved');
+    setTimeout(() => setStatus('Ready'), 2500);
+  } catch (e) {
+    setStatus('Load failed: ' + e.message, 'error');
+  }
+}
+
+function saveCompanyDefaults() {
+  const data = {};
+  COMPANY_IDS.forEach(id => { data[id] = val(id); });
+  try {
+    localStorage.setItem(STORAGE_KEYS.company, JSON.stringify(data));
+    setStatus('Company info saved ✓', 'saved');
+    setTimeout(() => setStatus('Ready'), 2500);
+  } catch (e) {
+    setStatus('Save failed: ' + e.message, 'error');
+  }
+}
+
+function loadCompanyDefaults() {
+  const raw = localStorage.getItem(STORAGE_KEYS.company);
+  if (!raw) {
+    setStatus('No saved company info', 'error');
+    setTimeout(() => setStatus('Ready'), 2500);
+    return;
+  }
+  try {
+    const data = JSON.parse(raw);
+    COMPANY_IDS.forEach(id => {
+      if (data[id] !== undefined) {
+        const el = $(id);
+        if (el) el.value = data[id];
+      }
+    });
+    renderLease();
+    setStatus('Company info loaded ✓', 'saved');
+    setTimeout(() => setStatus('Ready'), 2500);
+  } catch (e) {
+    setStatus('Load failed: ' + e.message, 'error');
+  }
+}
+
+function exportJSON() {
+  const data = collectFormData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const tenant = (val('f-tenantNames') || 'lease').split(',')[0].trim().replace(/\s+/g, '_');
+  const date = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `Persistent_Solutions_Lease_${tenant}_${date}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  setStatus('Exported ✓', 'saved');
+  setTimeout(() => setStatus('Ready'), 2000);
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      populateForm(data);
+      setStatus('Imported ✓', 'saved');
+      setTimeout(() => setStatus('Ready'), 2500);
+    } catch (err) {
+      setStatus('Import failed: ' + err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function printLease() {
+  const missing = validate();
+  if (missing.length) {
+    setStatus('Please fill: ' + missing.join(', '), 'error');
+    /* Scroll to first invalid */
+    const first = document.querySelector('.invalid');
+    if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  setStatus('Preparing print...', 'saved');
+  setTimeout(() => {
+    window.print();
+    setStatus('Ready');
+  }, 300);
+}
+
+/* ─────────────────────────────────────────────
+   AUTO-SAVE & LIVE UPDATES
+   ───────────────────────────────────────────── */
+const debouncedRender = debounce(() => {
+  renderLease();
+  /* Auto-save draft silently */
+  try {
+    localStorage.setItem(STORAGE_KEYS.draft, JSON.stringify(collectFormData()));
+  } catch (e) {}
+}, 250);
+
+/* Attach listeners to all fields */
+FIELD_IDS.forEach(id => {
+  const el = $(id);
+  if (!el) return;
+  el.addEventListener('input', debouncedRender);
+  el.addEventListener('change', debouncedRender);
+});
+
+/* ─────────────────────────────────────────────
+   INIT
+   ───────────────────────────────────────────── */
+(function init() {
+  /* Try to load company defaults first */
+  const compRaw = localStorage.getItem(STORAGE_KEYS.company);
+  if (compRaw) {
+    try {
+      const data = JSON.parse(compRaw);
+      COMPANY_IDS.forEach(id => {
+        if (data[id] !== undefined) {
+          const el = $(id);
+          if (el) el.value = data[id];
+        }
+      });
+    } catch (e) {}
+  }
+  /* Try to load draft */
+  const draftRaw = localStorage.getItem(STORAGE_KEYS.draft);
+  if (draftRaw) {
+    try {
+      const data = JSON.parse(draftRaw);
+      populateForm(data);
+      setStatus('Draft restored', 'saved');
+      setTimeout(() => setStatus('Ready'), 2500);
+    } catch (e) {
+      renderLease();
+    }
+  } else {
+    /* Set defaults */
+    $('f-companyName').value = 'Persistent Solutions LLC';
+    $('f-premisesState').value = 'MO';
+    $('f-premisesCounty').value = 'St. Louis County';
+    $('f-depositHolder').value = 'Persistent Solutions LLC';
+    $('f-terminationNotice').value = 'One month written notice';
+    renderLease();
+  }
+})();
+
+</script>
+</body>
+</html>
