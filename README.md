@@ -11,3 +11,7 @@ documents. No server, no dependencies, no network calls — open the file and fi
 Both render a complete document for print/PDF from the entered values; nothing is transmitted anywhere.
 
 **Not legal advice.** These are drafting aids; have a lawyer review any agreement before use.
+
+## License
+
+MIT — see `LICENSE`.
