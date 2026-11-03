@@ -813,7 +813,7 @@
           </div>
           <div class="field half">
             <label>Deposit Held By</label>
-            <input type="text" id="f-depositHolder" value="Persistent Solutions LLC">
+            <input type="text" id="f-depositHolder" value="">
           </div>
         </div>
         <div class="row">
@@ -1644,7 +1644,7 @@ function newLease() {
   $('f-companyName').value = 'Persistent Solutions LLC';
   $('f-premisesState').value = 'MO';
   $('f-premisesCounty').value = 'St. Louis County';
-  $('f-depositHolder').value = 'Persistent Solutions LLC';
+  $('f-depositHolder').value = '';
   $('f-terminationNotice').value = 'One month written notice';
   renderLease();
   setStatus('New lease started', 'saved');
@@ -1817,7 +1817,7 @@ FIELD_IDS.forEach(id => {
     $('f-companyName').value = 'Persistent Solutions LLC';
     $('f-premisesState').value = 'MO';
     $('f-premisesCounty').value = 'St. Louis County';
-    $('f-depositHolder').value = 'Persistent Solutions LLC';
+    $('f-depositHolder').value = '';
     $('f-terminationNotice').value = 'One month written notice';
     renderLease();
   }
